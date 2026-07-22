@@ -162,7 +162,16 @@ function initSocket() {
             credentials: 'include' 
         })
         .then(res => res.json())
-        .then(data => console.log(data))
+        .then(data => {
+            console.log('전적 업데이트 완료:', data);
+            
+            // 알림창 띄우기 (선택 사항)
+            alert(result === 1 ? '승리했습니다! 로비로 돌아갑니다.' : '패배했습니다... 로비로 돌아갑니다.');
+
+            // 👇 화면 전환을 위해 아래 두 줄을 반드시 추가하세요! 👇
+            gameScreen.classList.add('hidden');    // 게임 화면 숨기기
+            lobbyScreen.classList.remove('hidden'); // 로비 화면 보여주기
+            })
         .catch(err => console.error(err));
 
         // 로비로 돌아가기
