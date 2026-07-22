@@ -14,7 +14,7 @@ const connection = await mysql.createConnection({
     database: 'user_jumpup'
 });
 
-route.post("/", (req, res)=>{
+route.post("/", async (req, res)=>{
     const newUser = await prisma.user.create({
         data: {
             nickname: req.body.nickname,
@@ -24,7 +24,7 @@ route.post("/", (req, res)=>{
     return resMsg("회원가입이 성공하였습니다")
 })
 
-route.post("/login",(req,res)=>{
+route.post("/login",async (req,res)=>{
     const user = await prisma.user.findUnique({
         where: {nickname:req.body.nickname}
     })
