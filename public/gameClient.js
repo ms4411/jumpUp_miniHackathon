@@ -21,9 +21,9 @@ let currentRoomId = '';
 let myId = '';
 let enemyId = '';
 
-// 게임 상태
-let me = { x: 100, y: 300, width: 30, height: 30, color: '#3498db', hp: 100, dir: 'right', isDashing: false };
-let enemy = { x: 600, y: 300, width: 30, height: 30, color: '#e74c3c', hp: 100, dir: 'left', isDashing: false };
+// 게임 상태// 기존 코드에 isHit: false 를 추가합니다.
+let me = { x: 100, y: 300, width: 30, height: 30, color: '#3498db', hp: 100, dir: 'right', isDashing: false, isHit: false };
+let enemy = { x: 600, y: 300, width: 30, height: 30, color: '#e74c3c', hp: 100, dir: 'left', isDashing: false, isHit: false };
 let bullets = []; // 총알 배열 {x, y, dx, dy, owner}
 let swords = [];  // 칼 공격 배열 {x, y, owner, timer}
 let keys = {};    // 눌린 키 상태
@@ -82,6 +82,37 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     }
 });
 
+// 전적을 업데이트하고 화면을 로비로 돌려보내는 함수
+function handleGameOver(result) {
+    // 1. 서버에 전적 업데이트 요청
+    fetch(`/api/users/${result}`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        credentials: 'include' 
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log('전적 업데이트 완료:', data);
+        alert(result === 1 ? '승리했습니다!' : '패배했습니다...');
+
+        // 2. 화면 전환 (게임 화면 숨기고 로비 화면 띄우기)
+        gameScreen.classList.add('hidden');
+        lobbyScreen.classList.remove('hidden');
+
+        // 3. ⭐️ 다음 게임을 위해 캐릭터 상태 완전 초기화 ⭐️
+        me.hp = 100;
+        enemy.hp = 100;
+        me.x = 100;  // 내 원래 시작 위치
+        enemy.x = 600; // 적 원래 시작 위치
+        bullets = []; // 날아가던 총알도 싹 지워주기
+        swords = [];
+    })
+    .catch(err => {
+        console.error('전적 업데이트 에러:', err);
+    });
+}
 // --- 2. 소켓 통신 및 매칭 ---
 
 function initSocket() {
@@ -134,48 +165,31 @@ function initSocket() {
     });
 
     // 체력 업데이트
-    socket.on('update_hp', (data) => {
+    socket.on("update_hp", (data) => {
         if (data.targetId === myId) {
             me.hp -= data.damage;
             myHpBar.innerText = `내 HP: ${me.hp}`;
-            if (me.hp <= 0) {
-                socket.emit('game_over', { roomId: currentRoomId, loserId: myId });
-            }
-        } else {
+            
+            // 🌟 내 캐릭터 피격 이펙트 발동
+            me.isHit = true;
+            setTimeout(() => { me.isHit = false; }, 150); // 0.15초 뒤 원래 색으로
+
+        } else if (data.targetId === enemyId) {
             enemy.hp -= data.damage;
             enemyHpBar.innerText = `적 HP: ${enemy.hp}`;
+            
+            // 🌟 적 캐릭터 피격 이펙트 발동
+            enemy.isHit = true;
+            setTimeout(() => { enemy.isHit = false; }, 150); // 0.15초 뒤 원래 색으로
         }
     });
 
     // 게임 종료 및 승패 전적 기록
-    socket.on('match_result', async (data) => {
-        const isWinner = data.loserId !== myId;
-        alert(isWinner ? "승리했습니다!" : "패배했습니다...");
-        
-        // 백엔드 PATCH API 호출하여 전적 기록 (1: 승리, -1: 패배)
-        await fetch(`/api/users/${result}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            // 👇 이 줄을 반드시 추가해야 합니다! (쿠키를 서버로 싣고 가라는 뜻)
-            credentials: 'include' 
-        })
-        .then(res => res.json())
-        .then(data => {
-            console.log('전적 업데이트 완료:', data);
-            
-            // 알림창 띄우기 (선택 사항)
-            alert(result === 1 ? '승리했습니다! 로비로 돌아갑니다.' : '패배했습니다... 로비로 돌아갑니다.');
-
-            // 👇 화면 전환을 위해 아래 두 줄을 반드시 추가하세요! 👇
-            gameScreen.classList.add('hidden');    // 게임 화면 숨기기
-            lobbyScreen.classList.remove('hidden'); // 로비 화면 보여주기
-            })
-        .catch(err => console.error(err));
-
-        // 로비로 돌아가기
-        window.location.reload();
+    socket.on('match_result', async (data) => { 
+        const result = (data.loserId === socket.id) ? -1 : 1;
+    
+        // 위에서 만든 함수 실행!
+        handleGameOver(result);
     });
 }
 
@@ -279,10 +293,12 @@ function startGameLoop() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // 플레이어 렌더링
+        ctx.fillStyle = me.isHit ? 'white' : me.color;
         ctx.fillStyle = me.isDashing ? 'cyan' : me.color;
         ctx.fillRect(me.x, me.y, me.width, me.height);
         
         // 상대방 렌더링
+        ctx.fillStyle = enemy.isHit ? 'white' : enemy.color;
         ctx.fillStyle = enemy.isDashing ? 'pink' : enemy.color;
         ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
 
@@ -300,7 +316,7 @@ function startGameLoop() {
         });
 
         // 칼 렌더링 (반투명 이펙트)
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         swords.forEach(s => {
             ctx.fillRect(s.x, s.y, s.width, s.height);
         });
