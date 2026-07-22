@@ -1,21 +1,17 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
-datasource db {
-  provider = "mysql"
-}
-
+// 1. Prisma Client 생성기 설정
 generator client {
   provider = "prisma-client-js"
 }
 
-// User 테이블 정의
+// 2. 데이터베이스 연결 설정 (이 부분이 빠져있어서 에러가 난 것입니다)
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// 3. 사용할 데이터베이스 모델 (프로젝트에 맞게 수정 가능)
 model User {
-  id    Int     @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
+  nickname String @unique
   password String
-  nickname  String  @unique
-  cntWin  Int  @default(0) // 기본값 0 설정
-  cntLose   Int    @default(0) // 기본값 0 설정
 }
