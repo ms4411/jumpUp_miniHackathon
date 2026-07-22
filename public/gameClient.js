@@ -9,6 +9,8 @@ const authMessage = document.getElementById('authMessage');
 const welcomeMsg = document.getElementById('welcomeMsg');
 const matchStatus = document.getElementById('matchStatus');
 const matchBtn = document.getElementById('matchBtn');
+const recordMsg = document.getElementById('recordMsg');
+const resultRecord = document.getElementById('resultRecord');
 
 const myHpBar = document.getElementById('myHpBar');
 const enemyHpBar = document.getElementById('enemyHpBar');
@@ -86,11 +88,35 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
         authScreen.classList.add('hidden');
         lobbyScreen.classList.remove('hidden');
         welcomeMsg.innerText = `환영합니다, ${myNickname}님!`;
+        loadRecord();
         initSocket();
     } else {
         authMessage.innerText = data.message || "로그인 실패";
     }
 });
+
+// --- 전적(승/패) UI 헬퍼 ---
+
+function renderRecord(win, lose) {
+    const w = Number(win) || 0;
+    const l = Number(lose) || 0;
+    const html = `<span class="win-count">${w}승</span><span class="lose-count">${l}패</span>`;
+    if (recordMsg) recordMsg.innerHTML = html;
+    if (resultRecord) resultRecord.innerHTML = html;
+}
+
+// 로그인 직후 등, 서버에서 최신 전적만 다시 받아와 표시할 때 사용
+async function loadRecord() {
+    try {
+        const res = await fetch('/api/users/me');
+        if (res.status === 200) {
+            const data = await res.json();
+            renderRecord(data.cntWin, data.cntLose);
+        }
+    } catch (error) {
+        console.error("전적 조회 중 에러 발생:", error);
+    }
+}
 
 // --- HP UI 헬퍼 ---
 
@@ -171,6 +197,9 @@ function handleGameOver(result) {
     .then(res => res.json())
     .then(data => {
         console.log('전적 업데이트 완료:', data);
+        if (data.user) {
+            renderRecord(data.user.cntWin, data.user.cntLose);
+        }
         showResultOverlay(result);
     })
     .catch(err => {
@@ -556,6 +585,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             authScreen.classList.add('hidden');
             lobbyScreen.classList.remove('hidden');
             welcomeMsg.innerText = `환영합니다, ${myNickname}님! (자동 로그인)`;
+            renderRecord(data.cntWin, data.cntLose);
 
             initSocket();
         }

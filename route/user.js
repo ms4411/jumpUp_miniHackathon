@@ -102,8 +102,8 @@ route.get("/me", async (req, res) => {
             return res.status(401).json({ message: "유저를 찾을 수 없습니다." });
         }
 
-        // 유효한 유저라면 닉네임을 클라이언트로 전달
-        return res.status(200).json({ nickname: user.nickname });
+        // 유효한 유저라면 닉네임과 전적을 클라이언트로 전달
+        return res.status(200).json({ nickname: user.nickname, cntWin: user.cntWin, cntLose: user.cntLose });
 
     } catch (error) {
         // 토큰 만료 또는 변조 시

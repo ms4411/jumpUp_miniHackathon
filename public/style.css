@@ -189,6 +189,22 @@ button:disabled {
     margin-bottom: 18px;
 }
 
+.record {
+    font-family: var(--font-body);
+    font-size: 22px;
+    margin: 0 0 16px;
+    min-height: 22px;
+}
+.record .win-count {
+    color: var(--neon-green);
+    text-shadow: 0 0 8px rgba(57,255,136,0.7);
+    margin-right: 14px;
+}
+.record .lose-count {
+    color: var(--neon-red);
+    text-shadow: 0 0 8px rgba(255,39,64,0.7);
+}
+
 /* 게임 화면 */
 #gameScreen { padding: 0; }
 
