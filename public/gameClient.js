@@ -299,3 +299,27 @@ function startGameLoop() {
     
     loop();
 }
+
+// --- 0. 자동 로그인 (페이지 로드 시 실행) ---
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // 백엔드에 쿠키(토큰)를 보내서 로그인 상태인지 확인
+        const res = await fetch('/api/users/me');
+        
+        if (res.status === 200) {
+            const data = await res.json();
+            myNickname = data.nickname;
+            
+            // 로그인 화면 숨기고 대기실 화면 표시
+            authScreen.classList.add('hidden');
+            lobbyScreen.classList.remove('hidden');
+            welcomeMsg.innerText = `환영합니다, ${myNickname}님! (자동 로그인)`;
+            
+            // 소켓 연결
+            initSocket(); 
+        }
+        // 200이 아니라면(토큰이 없거나 만료됨) 아무것도 하지 않음 -> 자연스럽게 로그인 창이 유지됨
+    } catch (error) {
+        console.error("자동 로그인 체크 중 에러 발생:", error);
+    }
+});

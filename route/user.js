@@ -79,6 +79,39 @@ route.post("/login",async (req,res)=>{
     return resMsg(res, "로그인에 성공하였습니다")
 })
 
+
+// --- 자동 로그인을 위한 내 정보 확인 API ---
+route.get("/me", async (req, res) => {
+    try {
+        const token = req.cookies.authToken;
+        
+        // 토큰이 없으면 401(Unauthorized) 반환
+        if (!token) {
+            return res.status(401).json({ message: "로그인 상태가 아닙니다." });
+        }
+
+        // 토큰 검증 및 유저 ID 추출
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        
+        // DB에서 해당 유저 찾기
+        const user = await prisma.user.findUnique({
+            where: { id: Number(decoded.userId) }
+        });
+
+        if (!user) {
+            return res.status(401).json({ message: "유저를 찾을 수 없습니다." });
+        }
+
+        // 유효한 유저라면 닉네임을 클라이언트로 전달
+        return res.status(200).json({ nickname: user.nickname });
+
+    } catch (error) {
+        // 토큰 만료 또는 변조 시
+        return res.status(401).json({ message: "유효하지 않은 토큰입니다." });
+    }
+});
+
+
 route.get("/:status", async (req, res)=>{
     const users = await prisma.user.findMany({
             where: {status:req.params.status}
