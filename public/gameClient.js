@@ -255,8 +255,24 @@ function initSocket() {
     // 매칭 성공 이벤트 (백엔드의 game.js에서 보냄)
     socket.on('match_success', (data) => {
         currentRoomId = data.roomId;
+        // ⭐️ 서버가 미리 알려주는 상대방 id. 더 이상 enemy_move를 기다릴 필요 없음
+        // (상대가 움직이기 전에 공격당해도 데미지가 씹히지 않도록)
+        enemyId = data.enemyId;
+
         lobbyScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
+
+        // ⭐️ isFirst 값으로 두 클라이언트가 "같은 좌표계"를 쓰도록 시작 위치를 맞춘다.
+        // 이전에는 두 플레이어 모두 항상 자신을 x=100(왼쪽)으로 초기화했기 때문에,
+        // 실제로는 서로 다른 물리적 위치에 있는데도 좌표가 겹쳐서
+        // "내 위치가 상대 화면에서도 동일하게 찍히는" 버그가 발생했었다.
+        if (data.isFirst) {
+            me.x = 100; me.y = 300;
+            enemy.x = 600; enemy.y = 300;
+        } else {
+            me.x = 600; me.y = 300;
+            enemy.x = 100; enemy.y = 300;
+        }
 
         me.hp = 100; enemy.hp = 100;
         gameEnded = false;
@@ -265,9 +281,8 @@ function initSocket() {
         startGameLoop();
     });
 
-    // 상대방 이동 수신
+    // 상대방 이동 수신 (enemyId는 이미 match_success에서 설정됨)
     socket.on('enemy_move', (data) => {
-        enemyId = data.playerId;
         enemy.x = data.x;
         enemy.y = data.y;
         enemy.dir = data.direction;

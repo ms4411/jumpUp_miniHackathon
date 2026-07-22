@@ -23,7 +23,10 @@ export default function setupSocket(server) {
         // ------------------------------------
         socket.on("join_match", (userData) => {
             console.log(`[매칭 시도] 유저: ${userData.nickname}`);
-            
+
+            // 이미 대기열에 있는 소켓이 중복으로 들어오는 것 방지
+            if (waitingQueue.some(p => p.socket.id === socket.id)) return;
+
             // 큐에 유저 추가
             waitingQueue.push({ socket, userData });
 
@@ -44,13 +47,28 @@ export default function setupSocket(server) {
                     status: "PLAYING"
                 };
 
-                // 두 유저에게 매칭 성공 알림
-                io.to(roomId).emit("match_success", {
-                    roomId: roomId,
+                // ⭐️ 두 유저에게 "서로 다른" 데이터를 개별적으로 보낸다.
+                // - enemyId: 상대가 움직이기 전에도 즉시 알 수 있도록 미리 전달
+                // - isFirst: 캔버스 상에서 왼쪽(true)/오른쪽(false) 시작 위치를 결정
+                //   => 두 클라이언트가 "같은 좌표계"를 공유하도록 만드는 핵심 값
+                player1.socket.emit("match_success", {
+                    roomId,
                     message: "매칭 성공! 게임을 시작합니다.",
-                    players: [player1.userData, player2.userData]
+                    myInfo: player1.userData,
+                    enemyInfo: player2.userData,
+                    enemyId: player2.socket.id,
+                    isFirst: true
                 });
-                
+
+                player2.socket.emit("match_success", {
+                    roomId,
+                    message: "매칭 성공! 게임을 시작합니다.",
+                    myInfo: player2.userData,
+                    enemyInfo: player1.userData,
+                    enemyId: player1.socket.id,
+                    isFirst: false
+                });
+
                 console.log(`⚔️ 매칭 성사: 방 번호 [${roomId}]`);
             }
         });
@@ -107,12 +125,22 @@ export default function setupSocket(server) {
         // ------------------------------------
         socket.on("disconnect", () => {
             console.log(`🔴 유저 접속 끊김: ${socket.id}`);
-            
+
             // 대기열에 있던 유저라면 큐에서 제거
             waitingQueue = waitingQueue.filter(p => p.socket.id !== socket.id);
 
-            // 게임 중에 나간 경우 처리 로직 (상대방 기권승 처리 등)
-            // 여기서는 단순성을 위해 생략
+            // ⭐️ 게임 중에 나간 경우: 남아있는 상대방을 자동 승리 처리하고
+            // match_result를 보내서 로비로 돌아갈 수 있게 한다.
+            for (const roomId of Object.keys(activeRooms)) {
+                const room = activeRooms[roomId];
+                if (room.players.includes(socket.id)) {
+                    io.to(roomId).emit("match_result", {
+                        loserId: socket.id,
+                        message: "상대방의 접속이 끊어졌습니다. 승리!"
+                    });
+                    delete activeRooms[roomId];
+                }
+            }
         });
     });
 }
