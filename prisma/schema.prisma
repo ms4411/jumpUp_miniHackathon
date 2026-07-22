@@ -5,7 +5,7 @@ generator client {
 
 // 2. 데이터베이스 연결 설정 (이 부분이 빠져있어서 에러가 난 것입니다)
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
