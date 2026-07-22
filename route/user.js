@@ -1,18 +1,15 @@
 import { Router } from "express";
-import mysql from 'mysql2/promise';
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import { resMsg } from "../common/response.js";
 import jwt from 'jsonwebtoken';
 
+import { PrismaClient } from '@prisma/client';
+
+const connection = new PrismaClient();
+
 const route=Router()
 const saltRounds = 20;
-const connection = await mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: process.env.DB_PASSWORD,
-    database: 'user_jumpup'
-});
 
 route.post("/", async (req, res)=>{
     const newUser = await prisma.user.create({
