@@ -10,8 +10,8 @@ datasource db {
 }
 
 enum UserStatus {
-    MATCHING,
-    WAIT,
+    MATCHING
+    WAIT
     PLAY
 }
 
