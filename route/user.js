@@ -2,7 +2,7 @@ import { Router } from "express";
 import mysql from 'mysql2/promise';
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
-import { resMsg } from "../common/response";
+import { resMsg } from "../common/response.js";
 import jwt from 'jsonwebtoken';
 
 const route=Router()

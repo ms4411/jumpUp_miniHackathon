@@ -2,6 +2,7 @@ import express from "express"
 import morgan from "morgan"
 import cookieParser from 'cookie-parser';
 import userRouter from "./route/user.js"
+import cors from "cors"
 
 const app=express()
 const PORT=3001
