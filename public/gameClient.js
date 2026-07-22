@@ -192,7 +192,7 @@ window.addEventListener('keydown', (e) => {
         me.isDashing = true;
         me.x += (me.dir === 'left' ? -100 : 100); 
         socket.emit('player_action', { roomId: currentRoomId, actionType: 'DASH', x: me.x, y: me.y, direction: me.dir });
-        setTimeout(() => me.isDashing = false, 200);
+        setTimeout(() => me.isDashing = false, 500);
     }
     if (e.code === 'KeyX') { // 총
         shootGun(me, me.dir, myId);
@@ -228,10 +228,10 @@ function startGameLoop() {
         let moved = false;
         const speed = 4;
         
-        if (keys['ArrowUp']) { me.y -= speed; moved = true; }
-        if (keys['ArrowDown']) { me.y += speed; moved = true; }
-        if (keys['ArrowLeft']) { me.x -= speed; me.dir = 'left'; moved = true; }
-        if (keys['ArrowRight']) { me.x += speed; me.dir = 'right'; moved = true; }
+        if (keys['KeyW']) { me.y -= speed; moved = true; }
+        if (keys['KeyS']) { me.y += speed; moved = true; }
+        if (keys['KeyA']) { me.x -= speed; me.dir = 'left'; moved = true; }
+        if (keys['KeyD']) { me.x += speed; me.dir = 'right'; moved = true; }
 
         // 화면 밖으로 나가지 못하게 방지
         me.x = Math.max(0, Math.min(canvas.width - me.width, me.x));
