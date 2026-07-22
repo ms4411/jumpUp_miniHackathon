@@ -17,7 +17,10 @@ app.use(cookieParser());
 app.use(express.static("public"))
 app.use(morgan("dev"))
 app.use(express.json());
-app.use(cors())
+app.use(cors({
+    origin: true,       // 요청을 보내는 프론트엔드 출처를 모두 허용
+    credentials: true   // 클라이언트와 서버 간의 쿠키/인증 정보 교환을 허용
+}));
 
 app.use("/api/users", userRouter)
 

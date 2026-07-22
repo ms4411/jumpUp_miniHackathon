@@ -153,9 +153,17 @@ function initSocket() {
         alert(isWinner ? "승리했습니다!" : "패배했습니다...");
         
         // 백엔드 PATCH API 호출하여 전적 기록 (1: 승리, -1: 패배)
-        await fetch(`/api/users/${isWinner ? 1 : -1}`, {
-            method: 'PATCH'
-        });
+        await fetch(`/api/users/${result}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            // 👇 이 줄을 반드시 추가해야 합니다! (쿠키를 서버로 싣고 가라는 뜻)
+            credentials: 'include' 
+        })
+        .then(res => res.json())
+        .then(data => console.log(data))
+        .catch(err => console.error(err));
 
         // 로비로 돌아가기
         window.location.reload();
