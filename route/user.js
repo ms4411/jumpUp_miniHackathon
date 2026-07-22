@@ -62,9 +62,61 @@ route.post("/login",async (req,res)=>{
 
 route.get("/:status", async (req, res)=>{
     const users = await prisma.user.findMany({
-        where: {status:req.params.status}
+            where: {status:req.params.status}
+        })
+        return res.json({users:users, length: users.length})
     })
-    return res.json({users:users, length: users.length})
-})
+
+route.patch("/:result", async (req, res) => {
+    try {
+        const token = req.cookies.token;
+        if (!token) {
+        return res.status(401).json({ message: '인증 토큰이 없습니다.' });
+        }
+
+        const decoded = jwt.verify(token, process.env.SECRET_KEY);
+        const userId = decoded.userId;
+
+        // 클라이언트에게 -1 또는 1 수치를 숫자로 받음 (예: { result: 1 })
+        const result = Number(req.params.result); // 또는 req.params.result
+
+        // 1. 조건에 따라 update에 넣을 data 객체 구성
+        let updateData = {};
+
+        if (result === 1) {
+        // 1인 경우 cntWin 1 증가
+        updateData = {
+            cntWin: { increment: 1 }
+        };
+        } else if (result === -1) {
+        // -1인 경우 cntLose 1 증가
+        updateData = {
+            cntLose: { increment: 1 }
+        };
+        } else {
+        return res.status(400).json({ message: '유효하지 않은 결과 값입니다. (-1 또는 1만 가능)' });
+        }
+
+        // 2. DB 업데이트 실행
+        const updatedUser = await prisma.user.update({
+        where: {
+            id: Number(userId),
+        },
+        data: updateData,
+        });
+
+        return res.status(200).json({
+        message: '승패 기록이 성공적으로 업데이트되었습니다.',
+        user: updatedUser,
+        });
+
+    } catch (error) {
+        console.error(error);
+        if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+        return res.status(403).json({ message: '유효하지 않거나 만료된 토큰입니다.' });
+        }
+        return res.status(500).json({ message: '서버 에러가 발생했습니다.' });
+    }
+});
 
 export default route
