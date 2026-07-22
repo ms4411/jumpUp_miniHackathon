@@ -27,6 +27,7 @@ let enemy = { x: 600, y: 300, width: 30, height: 30, color: '#e74c3c', hp: 100, 
 let bullets = []; // 총알 배열 {x, y, dx, dy, owner}
 let swords = [];  // 칼 공격 배열 {x, y, owner, timer}
 let keys = {};    // 눌린 키 상태
+let gameEnded = false; // 게임 종료 알림 중복 전송 방지 플래그
 
 // --- 1. 인증 및 API (로그인/회원가입) ---
 
@@ -108,6 +109,7 @@ function handleGameOver(result) {
         enemy.x = 600; // 적 원래 시작 위치
         bullets = []; // 날아가던 총알도 싹 지워주기
         swords = [];
+        gameEnded = false;
     })
     .catch(err => {
         console.error('전적 업데이트 에러:', err);
@@ -140,6 +142,7 @@ function initSocket() {
         // 백엔드에서 socket.id도 같이 넘겨주면 좋지만, 현재는 없으므로 간단히 초기화
         // 편의상 양쪽을 초기 위치로 세팅
         me.hp = 100; enemy.hp = 100;
+        gameEnded = false;
         
         startGameLoop();
     });
@@ -156,7 +159,7 @@ function initSocket() {
     socket.on('enemy_action', (data) => {
         if (data.actionType === 'DASH') {
             enemy.isDashing = true;
-            setTimeout(() => enemy.isDashing = false, 200);
+            setTimeout(() => enemy.isDashing = false, 500);
         } else if (data.actionType === 'GUN') {
             shootGun(enemy, data.direction, data.playerId);
         } else if (data.actionType === 'SWORD') {
@@ -174,6 +177,12 @@ function initSocket() {
             me.isHit = true;
             setTimeout(() => { me.isHit = false; }, 150); // 0.15초 뒤 원래 색으로
 
+            // ⭐️ 내 HP가 0 이하가 되면 서버에 게임 종료를 알림 (패배자 = 나)
+            if (me.hp <= 0 && !gameEnded) {
+                gameEnded = true;
+                socket.emit('game_over', { roomId: currentRoomId, loserId: myId });
+            }
+
         } else if (data.targetId === enemyId) {
             enemy.hp -= data.damage;
             enemyHpBar.innerText = `적 HP: ${enemy.hp}`;
@@ -187,7 +196,7 @@ function initSocket() {
     // 게임 종료 및 승패 전적 기록
     socket.on('match_result', async (data) => { 
         const result = (data.loserId === socket.id) ? -1 : 1;
-    
+        console.log(result)
         // 위에서 만든 함수 실행!
         handleGameOver(result);
     });
@@ -308,7 +317,7 @@ function startGameLoop() {
         ctx.fillRect(enemy.dir === 'right' ? enemy.x + 25 : enemy.x - 5, enemy.y + 10, 10, 10);
 
         // 총알 렌더링
-        ctx.fillStyle = 'yellow';
+        ctx.fillStyle = 'black';
         bullets.forEach(b => {
             ctx.beginPath();
             ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
