@@ -38,7 +38,7 @@ route.post("/", async (req, res) => {
             }
         });
         
-        return resMsg("회원가입이 성공하였습니다", 201);
+        return resMsg(res, "회원가입이 성공하였습니다", 201);
 
     } catch (error) {
         console.error(error);
@@ -52,10 +52,10 @@ route.post("/login",async (req,res)=>{
     })
     //로그인 실패 처리
     if(!user){ 
-        return resMsg("비밀번호 또는 닉네임이 틀렸습니다.", 400) 
+        return resMsg(res, "비밀번호 또는 닉네임이 틀렸습니다.", 400) 
     }
     if(!await bcrypt.compare(req.body.password, user.password)){
-        return resMsg("비밀번호 또는 닉네임이 틀렸습니다.", 400)
+        return resMsg(res, "비밀번호 또는 닉네임이 틀렸습니다.", 400)
     }
 
     //jwt생성
@@ -76,7 +76,7 @@ route.post("/login",async (req,res)=>{
         maxAge: 1000 * 60 * 60 * 24, // 쿠키 유효 기간 (밀리초 단위, 예: 1일)
         // path: '/' // 모든 경로에서 쿠키 유효 (기본값)
     });
-    return resMsg("로그인에 성공하였습니다")
+    return resMsg(res, "로그인에 성공하였습니다")
 })
 
 route.get("/:status", async (req, res)=>{

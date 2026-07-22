@@ -31,25 +31,48 @@ let keys = {};    // 눌린 키 상태
 // --- 1. 인증 및 API (로그인/회원가입) ---
 
 document.getElementById('registerBtn').addEventListener('click', async () => {
+    // 1. 입력된 값에서 양옆 공백 제거
+    const nickname = nicknameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    // 2. 빈 값 검사
+    if (!nickname || !password) {
+        authMessage.innerText = "닉네임과 비밀번호를 모두 입력해주세요.";
+        return; // 값이 비어있으면 함수를 여기서 즉시 종료 (서버로 요청 안 보냄)
+    }
+
+    // 3. 정상적으로 값이 있을 때만 서버로 요청
     const res = await fetch('/api/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname: nicknameInput.value, password: passwordInput.value })
+        body: JSON.stringify({ nickname: nickname, password: password })
     });
+    
     const data = await res.json();
     authMessage.innerText = data.message;
 });
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
+    // 1. 입력된 값에서 양옆 공백 제거
+    const nickname = nicknameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    // 2. 빈 값 검사
+    if (!nickname || !password) {
+        authMessage.innerText = "닉네임과 비밀번호를 모두 입력해주세요.";
+        return; // 값이 비어있으면 함수를 여기서 즉시 종료 (서버로 요청 안 보냄)
+    }
+
+    // 3. 정상적으로 값이 있을 때만 서버로 요청
     const res = await fetch('/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nickname: nicknameInput.value, password: passwordInput.value })
+        body: JSON.stringify({ nickname: nickname, password: password })
     });
     const data = await res.json();
     
     if (res.status === 200) {
-        myNickname = nicknameInput.value;
+        myNickname = nickname; // 공백이 제거된 깔끔한 닉네임 사용
         authScreen.classList.add('hidden');
         lobbyScreen.classList.remove('hidden');
         welcomeMsg.innerText = `환영합니다, ${myNickname}님!`;
