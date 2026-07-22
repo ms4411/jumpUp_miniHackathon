@@ -11,6 +11,12 @@ const prisma = new PrismaClient();
 const route=Router()
 const saltRounds = 10;
 
+const status = Object.freeze({
+    MATCHING: "MATCHING",
+    WAIT: "WAIT",
+    PLAY: "PLAY"
+});
+
 route.post("/", async (req, res)=>{
     const newUser = await prisma.user.create({
         data: {
@@ -18,7 +24,7 @@ route.post("/", async (req, res)=>{
             password: await bcrypt.hash(req.body.password, saltRounds)
         }
     });
-    return resMsg("회원가입이 성공하였습니다")
+    return resMsg("회원가입이 성공하였습니다",201)
 })
 
 route.post("/login",async (req,res)=>{
@@ -52,6 +58,13 @@ route.post("/login",async (req,res)=>{
         // path: '/' // 모든 경로에서 쿠키 유효 (기본값)
     });
     return resMsg("로그인에 성공하였습니다")
+})
+
+route.get("/:status", async (req, res)=>{
+    const users = await prisma.user.findMany({
+        where: {status:req.params.status}
+    })
+    return res.json({users:users, length: users.length})
 })
 
 export default route

@@ -9,9 +9,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserStatus {
+    MATCHING,
+    WAIT,
+    PLAY
+}
+
 // 3. 사용할 데이터베이스 모델 (프로젝트에 맞게 수정 가능)
 model User {
   id       Int    @id @default(autoincrement())
   nickname String @unique
   password String
+  status   UserStatus @default(WAIT)
 }
