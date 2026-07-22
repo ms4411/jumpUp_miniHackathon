@@ -351,7 +351,7 @@ window.addEventListener('keydown', (e) => {
     if (e.code === 'KeyN') { // 대시
         const startX = me.x;
         me.isDashing = true;
-        me.x += (me.dir === 'left' ? -100 : 100);
+        me.x += (me.dir === 'left' ? -50 : 50);
         me.x = Math.max(0, Math.min(canvas.width - me.width, me.x));
 
         // 대시 경로를 따라 잔상 생성
@@ -361,7 +361,7 @@ window.addEventListener('keydown', (e) => {
         }
 
         socket.emit('player_action', { roomId: currentRoomId, actionType: 'DASH', x: me.x, y: me.y, direction: me.dir });
-        setTimeout(() => me.isDashing = false, 500);
+        setTimeout(() => me.isDashing = false, 200);
     }
     if (e.code === 'KeyJ') { // 총
         shootGun(me, me.dir, myId);
