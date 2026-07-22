@@ -17,15 +17,34 @@ const status = Object.freeze({
     PLAY: "PLAY"
 });
 
-route.post("/", async (req, res)=>{
-    const newUser = await prisma.user.create({
-        data: {
-            nickname: req.body.nickname,
-            password: await bcrypt.hash(req.body.password, saltRounds)
+route.post("/", async (req, res) => {
+    try {
+        // 1. 이미 존재하는 닉네임인지 먼저 검사
+        const existingUser = await prisma.user.findUnique({
+            where: { nickname: req.body.nickname }
+        });
+
+        // 2. 이미 존재한다면 가입 차단 및 클라이언트에 메시지 전달
+        if (existingUser) {
+            // 커스텀 응답 함수인 resMsg를 사용하거나, 직접 상태 코드와 메시지를 리턴
+            return res.status(409).json({ message: "이미 사용 중인 닉네임입니다." }); 
         }
-    });
-    return resMsg("회원가입이 성공하였습니다",201)
-})
+
+        // 3. 존재하지 않으면 정상적으로 가입 진행
+        const newUser = await prisma.user.create({
+            data: {
+                nickname: req.body.nickname,
+                password: await bcrypt.hash(req.body.password, saltRounds)
+            }
+        });
+        
+        return resMsg("회원가입이 성공하였습니다", 201);
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "회원가입 중 서버 에러가 발생했습니다." });
+    }
+});
 
 route.post("/login",async (req,res)=>{
     const user = await prisma.user.findUnique({
@@ -69,7 +88,7 @@ route.get("/:status", async (req, res)=>{
 
 route.patch("/:result", async (req, res) => {
     try {
-        const token = req.cookies.token;
+        const token = req.cookies.authToken;
         if (!token) {
         return res.status(401).json({ message: '인증 토큰이 없습니다.' });
         }

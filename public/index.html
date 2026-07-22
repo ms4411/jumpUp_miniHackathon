@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D 소켓 대전 게임</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="authScreen" class="screen">
+        <h1>2D 액션 게임</h1>
+        <input type="text" id="nickname" placeholder="닉네임">
+        <input type="password" id="password" placeholder="비밀번호">
+        <div class="buttons">
+            <button id="loginBtn">로그인</button>
+            <button id="registerBtn">회원가입</button>
+        </div>
+        <p id="authMessage"></p>
+    </div>
+
+    <div id="lobbyScreen" class="screen hidden">
+        <h2 id="welcomeMsg"></h2>
+        <button id="matchBtn">게임 매칭 찾기</button>
+        <p id="matchStatus"></p>
+    </div>
+
+    <div id="gameScreen" class="screen hidden">
+        <div class="ui-bar">
+            <div id="myHpBar">내 HP: 100</div>
+            <div id="enemyHpBar">적 HP: 100</div>
+        </div>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <p class="controls">조작: 방향키(이동), Z(칼), X(총), C(대시)</p>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="gameClient.js"></script>
+</body>
+</html>
