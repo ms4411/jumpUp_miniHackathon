@@ -348,7 +348,7 @@ window.addEventListener('keyup', (e) => keys[e.code] = false);
 window.addEventListener('keydown', (e) => {
     if (gameScreen.classList.contains('hidden')) return;
 
-    if (e.code === 'KeyC') { // 대시
+    if (e.code === 'KeyN') { // 대시
         const startX = me.x;
         me.isDashing = true;
         me.x += (me.dir === 'left' ? -100 : 100);
@@ -363,11 +363,11 @@ window.addEventListener('keydown', (e) => {
         socket.emit('player_action', { roomId: currentRoomId, actionType: 'DASH', x: me.x, y: me.y, direction: me.dir });
         setTimeout(() => me.isDashing = false, 500);
     }
-    if (e.code === 'KeyX') { // 총
+    if (e.code === 'KeyJ') { // 총
         shootGun(me, me.dir, myId);
         socket.emit('player_action', { roomId: currentRoomId, actionType: 'GUN', x: me.x, y: me.y, direction: me.dir });
     }
-    if (e.code === 'KeyZ') { // 칼
+    if (e.code === 'KeyK') { // 칼
         swingSword(me, me.dir, myId);
         socket.emit('player_action', { roomId: currentRoomId, actionType: 'SWORD', x: me.x, y: me.y, direction: me.dir });
     }
