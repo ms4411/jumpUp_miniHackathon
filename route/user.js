@@ -6,10 +6,10 @@ import jwt from 'jsonwebtoken';
 
 import { PrismaClient } from '@prisma/client';
 
-const connection = new PrismaClient();
+const prisma = new PrismaClient();
 
 const route=Router()
-const saltRounds = 20;
+const saltRounds = 10;
 
 route.post("/", async (req, res)=>{
     const newUser = await prisma.user.create({
