@@ -116,8 +116,15 @@ route.get("/:status", async (req, res)=>{
     const users = await prisma.user.findMany({
             where: {status:req.params.status}
         })
-        return res.json({users:users, length: users.length})
-    })
+    return res.json({users:users, length: users.length})
+})
+
+route.get("/:id/results", async(req, res)=>{
+    const user = await prisma.user.findMany({
+            where: {userId:req.params.id}
+        })
+    return res.json({win:user.cntWin, lose:user.cntLose})
+})
 
 route.patch("/:result", async (req, res) => {
     try {
